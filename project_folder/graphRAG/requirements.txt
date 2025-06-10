@@ -1,0 +1,81 @@
+# AI & LLMs
+openai
+tiktoken
+langchain
+langchain-community
+langchain-core
+langsmith
+semantic-kernel[azure]==1.20.0
+autogenstudio
+
+# Azure SDKs & Services
+azure-ai-documentintelligence
+azure-ai-ml
+azure-ai-projects
+azure-ai-services
+azure-common
+azure-core
+azure-identity
+azure-mgmt-core
+
+# Data Science & Math
+numpy
+pandas
+scipy
+pyarrow
+tqdm
+networkx
+
+# Visualization & UI
+streamlit
+Pyvis
+graspologic
+
+# Natural Language Processing (NLP)
+spacy
+rdflib
+regex
+
+# PostgreSQL & Database Connectivity
+psycopg2-binary
+sqlalchemy
+pyodbc>=4.0.39
+
+# Filesystem, Paths, and Environment
+pathlib
+pathable
+python-dotenv
+
+# Web & API Tools
+requests
+urllib3
+openapi-core
+openapi-schema-validator
+openapi-spec-validator
+uvicorn
+
+# Async, System, and Utility
+asyncio
+async-timeout
+nest-asyncio
+psutil
+logging
+typing
+pytz
+
+# Validation, Parsing, and Packaging
+pydantic
+packaging
+referencing
+toml
+
+# PDF & Image Handling
+pdfkit
+pillow
+
+# Templating & Secrets
+Jinja2
+keyring
+
+# Custom or Internal Modules
+graphrag
