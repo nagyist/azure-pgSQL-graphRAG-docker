@@ -25,6 +25,8 @@ scipy
 pyarrow
 tqdm
 networkx
+scikit-learn
+faiss-cpu
 
 # Visualization & UI
 streamlit
@@ -40,6 +42,7 @@ regex
 psycopg2-binary
 sqlalchemy
 pyodbc>=4.0.39
+pgvector
 
 # Filesystem, Paths, and Environment
 pathlib
@@ -79,3 +82,5 @@ keyring
 
 # Custom or Internal Modules
 graphrag
+
+

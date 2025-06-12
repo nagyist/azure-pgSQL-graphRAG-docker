@@ -8,7 +8,7 @@ encoding_model: cl100k_base # this needs to be matched to your model!
 
 parallelization:
   stagger: 0.3
-  # num_threads: 50
+  num_threads: 5
 
 async_mode: threaded # or asyncio
 
@@ -20,14 +20,14 @@ embeddings:
     container_name: default
     overwrite: true
   llm:
-    api_key: $GRAPHRAG_API_KEY
+    api_key: $AOAI_API_KEY
     type: azure_openai_embedding # or azure_openai_embedding
-    model: ${GRAPHRAG_EMBEDDING_MODEL}
-    api_base: ${GRAPHRAG_API_BASE}
-    api_version: "${GRAPHRAG_EMBEDDING_API_VERSION}"
+    model: ${AOAI_EMBEDDING_MODEL}
+    api_base: ${AOAI_API_BASE}
+    api_version: "${AOAI_EMBEDDING_API_VERSION}"
     # audience: "https://cognitiveservices.azure.com/.default"
     # organization: <organization_id>
-    deployment_name: ${GRAPHRAG_EMBEDDING_DEPLOYMENT}
+    deployment_name: ${AOAI_EMBEDDING_DEPLOYMENT}
     retry_strategy: native
     max_retries: -1                   # set to -1 for dynamic retry logic (most optimal setting based on server response)
     tokens_per_minute: auto              # set to 0 to disable rate limiting
@@ -37,15 +37,15 @@ embeddings:
 
 models:
   default_chat_model:
-    api_key: ${GRAPHRAG_API_KEY} # set this in the generated .env file
+    api_key: ${AOAI_API_KEY} # set this in the generated .env file
     type: azure_openai_chat # or azure_openai_chat
-    model: ${GRAPHRAG_LLM_MODEL}
+    model: ${AOAI_LLM_MODEL}
     model_supports_json: true # recommended if this is available for your model.
     # audience: "https://cognitiveservices.azure.com/.default"
-    api_base: ${GRAPHRAG_API_BASE}
-    api_version: "${GRAPHRAG_LLM_API_VERSION}"
+    api_base: ${AOAI_API_BASE}
+    api_version: "${AOAI_LLM_API_VERSION}"
     # organization: <organization_id>
-    deployment_name: ${GRAPHRAG_LLM_DEPLOYMENT}
+    deployment_name: ${AOAI_LLM_DEPLOYMENT}
     retry_strategy: native
     max_retries: -1                   # set to -1 for dynamic retry logic (most optimal setting based on server response)
     tokens_per_minute: auto              # set to 0 to disable rate limiting
@@ -54,14 +54,14 @@ models:
     max_retry_wait: 50      
 
   default_embedding_model:
-      api_key: ${GRAPHRAG_API_KEY}
+      api_key: ${AOAI_API_KEY}
       type: azure_openai_embedding # or azure_openai_embedding
-      model: ${GRAPHRAG_EMBEDDING_MODEL}
-      api_base: ${GRAPHRAG_API_BASE}
-      api_version: "${GRAPHRAG_EMBEDDING_API_VERSION}"
+      model: ${AOAI_EMBEDDING_MODEL}
+      api_base: ${AOAI_API_BASE}
+      api_version: "${AOAI_EMBEDDING_API_VERSION}"
       # audience: "https://cognitiveservices.azure.com/.default"
       # organization: <organization_id>
-      deployment_name: ${GRAPHRAG_EMBEDDING_DEPLOYMENT}
+      deployment_name: ${AOAI_EMBEDDING_DEPLOYMENT}
       retry_strategy: native
       max_retries: -1                   # set to -1 for dynamic retry logic (most optimal setting based on server response)
       tokens_per_minute: auto              # set to 0 to disable rate limiting

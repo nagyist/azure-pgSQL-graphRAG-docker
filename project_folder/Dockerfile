@@ -12,6 +12,12 @@ RUN apt-get update && apt-get install -y \
     libreadline-dev zlib1g-dev flex bison \
     curl gnupg unixodbc-dev
 
+# Install pgvector extension
+RUN git clone https://github.com/pgvector/pgvector.git /pgvector && \
+    cd /pgvector && \
+    make && \
+    make install
+
 # Set pg_config path explicitly
 ENV PG_CONFIG=/usr/lib/postgresql/16/bin/pg_config
 
