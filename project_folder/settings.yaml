@@ -3,160 +3,150 @@
 
 ### LLM settings ###
 ## There are a number of settings to tune the threading and token limits for LLM calls - check the docs.
-
-encoding_model: cl100k_base # this needs to be matched to your model!
-
-parallelization:
-  stagger: 0.3
-  num_threads: 5
-
-async_mode: threaded # or asyncio
-
-embeddings:
-  async_mode: threaded # or asyncio
-  vector_store: 
-    type: lancedb
-    db_uri: '/app/graphrag-folder/output/lancedb'
-    container_name: default
-    overwrite: true
-  llm:
-    api_key: $AOAI_API_KEY
-    type: azure_openai_embedding # or azure_openai_embedding
-    model: ${AOAI_EMBEDDING_MODEL}
+completion_models:
+  default_completion_model:
+    model_provider: azure
+    model: "gpt-4o"
+    deployment_name: "gpt-4o"          # <-- your AOAI deployment name
     api_base: ${AOAI_API_BASE}
-    api_version: "${AOAI_EMBEDDING_API_VERSION}"
-    # audience: "https://cognitiveservices.azure.com/.default"
-    # organization: <organization_id>
-    deployment_name: ${AOAI_EMBEDDING_DEPLOYMENT}
-    retry_strategy: native
-    max_retries: -1                   # set to -1 for dynamic retry logic (most optimal setting based on server response)
-    tokens_per_minute: auto              # set to 0 to disable rate limiting
-    requests_per_minute: auto            # set to 0 to disable rate limiting
-    max_retries: 5
-    max_retry_wait: 50      
+    api_version: "2025-01-01-preview"
+    auth_method: api_key
+    api_key: ${AOAI_API_KEY}
+    retry:
+      type: exponential_backoff
 
-models:
-  default_chat_model:
-    api_key: ${AOAI_API_KEY} # set this in the generated .env file
-    type: azure_openai_chat # or azure_openai_chat
-    model: ${AOAI_LLM_MODEL}
-    model_supports_json: true # recommended if this is available for your model.
-    # audience: "https://cognitiveservices.azure.com/.default"
-    api_base: ${AOAI_API_BASE}
-    api_version: "${AOAI_LLM_API_VERSION}"
-    # organization: <organization_id>
-    deployment_name: ${AOAI_LLM_DEPLOYMENT}
-    retry_strategy: native
-    max_retries: -1                   # set to -1 for dynamic retry logic (most optimal setting based on server response)
-    tokens_per_minute: auto              # set to 0 to disable rate limiting
-    requests_per_minute: auto            # set to 0 to disable rate limiting
-    max_retries: 5
-    max_retry_wait: 50      
-
+embedding_models:
   default_embedding_model:
-      api_key: ${AOAI_API_KEY}
-      type: azure_openai_embedding # or azure_openai_embedding
-      model: ${AOAI_EMBEDDING_MODEL}
-      api_base: ${AOAI_API_BASE}
-      api_version: "${AOAI_EMBEDDING_API_VERSION}"
-      # audience: "https://cognitiveservices.azure.com/.default"
-      # organization: <organization_id>
-      deployment_name: ${AOAI_EMBEDDING_DEPLOYMENT}
-      retry_strategy: native
-      max_retries: -1                   # set to -1 for dynamic retry logic (most optimal setting based on server response)
-      tokens_per_minute: auto              # set to 0 to disable rate limiting
-      requests_per_minute: auto            # set to 0 to disable rate limiting
-      max_retries: 5
-      max_retry_wait: 50      
+    model_provider: azure
+    model: "text-embedding-3-small"
+    deployment_name: "text-embedding-3-small"
+    api_base: ${AOAI_API_BASE}
+    api_version: "2024-02-15-preview"
+    auth_method: api_key
+    api_key: ${AOAI_API_KEY}
+    retry:
+      type: exponential_backoff
 
-### Input settings ###
+### Document processing settings ###
+
 input:
-  type: file # or blob
-  file_type: text # or csv
-  base_dir: "/app/graphrag-folder/input"
-  file_encoding: utf-8
-  file_pattern: ".*\\.txt$$"
+  type: text # [csv, text, json, jsonl]
 
-chunks:
+chunking:
+  type: tokens
   size: 1200
   overlap: 100
-  group_by_columns: [id]
+  encoding_model: o200k_base
 
 ### Storage settings ###
 ## If blob storage is specified in the following four sections,
 ## connection_string and container_name must be provided
 
-cache:
-  type: file # one of [blob, cosmosdb, file]
-  base_dir: "/app/graphrag-folder/cache"
+input_storage:
+  type: file # [file, blob, cosmosdb]
+  base_dir: "/app/graphrag-folder/input"
 
-reporting:
-  type: file # or console, blob
-  base_dir: "/app/graphrag-folder/logs"
-
-output: # changed from storage
-  type: file # one of [blob, cosmosdb, file]
+output_storage:
+  type: file # [file, blob, cosmosdb]
   base_dir: "/app/graphrag-folder/output"
 
+reporting:
+  type: file # [file, blob]
+  base_dir: "/app/graphrag-folder/logs"
 
-## only turn this on if running `graphrag index` with custom settings
-## we normally use `graphrag update` with the defaults
-update_index_storage:
-  type: file # or blob
-  base_dir: "/app/graphrag-folder/update_output"
+cache:
+  type: json # [json, memory, none]
+  storage:
+    type: file # [file, blob, cosmosdb]
+    base_dir: "/app/graphrag-folder/cache"
+    
+vector_store:
+  type: lancedb
+  db_uri: "/app/graphrag-folder/output/lancedb"
+  vector_size: 1536
 
 ### Workflow settings ###
 
-skip_workflows: []
+embed_text:
+  embedding_model_id: default_embedding_model
 
-entity_extraction:
-  prompt: "/app/graphrag-folder/prompts/entity_extraction.txt"
+extract_graph:
+  completion_model_id: default_completion_model
+  prompt: "/app/graphrag-folder/prompts/extract_graph.txt"
   entity_types: [organization,person,geo,event]
   max_gleanings: 1
 
 summarize_descriptions:
+  completion_model_id: default_completion_model
   prompt: "/app/graphrag-folder/prompts/summarize_descriptions.txt"
   max_length: 500
 
-claim_extraction:
-  enabled: false
-  prompt: "/app/graphrag-folder/prompts/claim_extraction.txt"
-  description: "Any claims or facts that could be relevant to information discovery."
-  max_gleanings: 1
-
-community_reports:
-  prompt: "/app/graphrag-folder/prompts/community_report.txt"
-  max_length: 2000
-  max_input_length: 8000
+extract_graph_nlp:
+  text_analyzer:
+    extractor_type: regex_english # [regex_english, syntactic_parser, cfg]
 
 cluster_graph:
   max_cluster_size: 10
 
-embed_graph:
-  enabled: true # if true, will generate node2vec embeddings for nodes
+extract_claims:
+  enabled: false
+  completion_model_id: default_completion_model
+  prompt: "/app/graphrag-folder/prompts/extract_claims.txt"
+  description: "Any claims or facts that could be relevant to information discovery."
+  max_gleanings: 1
 
-umap:
-  enabled: false # if true, will generate UMAP embeddings for nodes (embed_graph must also be enabled)
+community_reports:
+  completion_model_id: default_completion_model
+  graph_prompt: "/app/graphrag-folder/prompts/community_report_graph.txt"
+  text_prompt: "/app/graphrag-folder/prompts/community_report_text.txt"
+  max_length: 2000
+  max_input_length: 8000
 
 snapshots:
-  graphml: true
-  embeddings: true
-  transient: false
+  graphml: false
+  embeddings: false
 
 ### Query settings ###
 ## The prompt locations are required here, but each search method has a number of optional knobs that can be tuned.
 ## See the config docs: https://microsoft.github.io/graphrag/config/yaml/#query
 
 local_search:
-  prompt: "/app/graphrag-folder/prompts/local_search_system_prompt.txt"
+  completion_model_id: default_completion_model
+  embedding_model_id: default_embedding_model
+  prompt: "/app/graphrag-folder/prompts/local_search_system_prompt.txt" 
+  text_unit_prop: 0.5
+  community_prop: 0.15
+  conversation_history_max_turns: 5
+  top_k_entities: 10
+  top_k_relationships: 10
+  max_context_tokens: 12000
+
 
 global_search:
+  completion_model_id: default_completion_model
   map_prompt: "/app/graphrag-folder/prompts/global_search_map_system_prompt.txt"
   reduce_prompt: "/app/graphrag-folder/prompts/global_search_reduce_system_prompt.txt"
   knowledge_prompt: "/app/graphrag-folder/prompts/global_search_knowledge_system_prompt.txt"
+  max_context_tokens: 12000
+  data_max_tokens: 12000
+  map_max_length: 1000
+  reduce_max_length: 2000
+  dynamic_search_threshold: 1
+  dynamic_search_keep_parent: false
+  dynamic_search_num_repeats: 1
+  dynamic_search_use_summary: false
+  dynamic_search_max_level: 2
 
 drift_search:
+  completion_model_id: default_completion_model
+  embedding_model_id: default_embedding_model
   prompt: "/app/graphrag-folder/prompts/drift_search_system_prompt.txt"
+  reduce_prompt: "/app/graphrag-folder/prompts/drift_search_reduce_prompt.txt"
 
 basic_search:
+  completion_model_id: default_completion_model
+  embedding_model_id: default_embedding_model
   prompt: "/app/graphrag-folder/prompts/basic_search_system_prompt.txt"
+
+graphrag:
+  top_k: 5

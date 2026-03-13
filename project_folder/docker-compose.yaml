@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: graphrag-img
+    image: new-graphrag-img
     container_name: postgres
     environment:
       USE_LOCAL_AGE: ${USE_LOCAL_AGE}
@@ -14,42 +14,42 @@ services:
       - "5432:5432"
 
   load-data:
-    image: graphrag-img    
+    image: new-graphrag-img    
     container_name: load-data-app
     volumes:
       - local_postgres_data:/var/lib/postgresql/data
       - graphrag_data:/app/graphrag-folder
-      - /mnt/c/Users/helenzeng/graphRAG2/postgreSQL-AGE/load-data.py:/app/load-data.py
+      - /mnt/c/Users/helenzeng/New-graphRAG/postgreSQL-AGE/load-data.py:/app/load-data.py
     depends_on:
       - postgres
-    ports:
-      - "8081:80"
     command: python3 /app/load-data.py      
-    env_file: .env
+    env_file: .env 
 
   graphrag-index:
-    image: graphrag-img
+    image: new-graphrag-img
     container_name: graphrag-index-app
-    volumes:      
+    volumes:
       - local_postgres_data:/var/lib/postgresql/data
       - graphrag_data:/app/graphrag-folder
-      - /mnt/c/Users/helenzeng/graphRAG2/postgreSQL-AGE/settings.yaml:/app/graphrag-folder/settings.yaml
-      - /mnt/c/Users/helenzeng/graphRAG2/postgreSQL-AGE/data/prompts:/app/graphrag-folder/prompts
-    ports:
-      - "8082:80"
+      - /mnt/c/Users/helenzeng/New-graphRAG/postgreSQL-AGE/settings.yaml:/app/graphrag-folder/settings.yaml:ro
+      - /mnt/c/Users/helenzeng/New-graphRAG/postgreSQL-AGE/prompts:/app/graphrag-folder/prompts:ro
     depends_on:
       - load-data
+    env_file:
+      - /mnt/c/Users/helenzeng/New-graphRAG/postgreSQL-AGE/.env
     command: >
-      sh -c 'echo "Total files: $(find /app/graphrag-folder/input -type f | wc -l)" && graphrag index --root /app/graphrag-folder'
-    env_file: .env
-
+      sh -c "
+        echo \"Total files: $(find /app/graphrag-folder/input -type f | wc -l)\" &&
+        graphrag index --root /app/graphrag-folder
+      "
+      
   graphrag-writer:
-    image: graphrag-img
+    image: new-graphrag-img
     container_name: graphrag-writer-app
     volumes:
       - local_postgres_data:/var/lib/postgresql/data
       - graphrag_data:/app/graphrag-folder
-      - /mnt/c/Users/helenzeng/graphRAG2/postgreSQL-AGE/write-to-db.py:/app/write-to-db.py
+      - /mnt/c/Users/helenzeng/New-graphRAG/postgreSQL-AGE/write-to-db.py:/app/write-to-db.py
     depends_on:
       - postgres
       - graphrag-index
@@ -57,16 +57,14 @@ services:
     env_file: .env
 
   build-graph:
-    image: graphrag-img
+    image: new-graphrag-img
     container_name: build-graph-app
     volumes:
       - local_postgres_data:/var/lib/postgresql/data
       - graphrag_data:/app/graphrag-folder
-      - /mnt/c/Users/helenzeng/graphRAG2/postgreSQL-AGE/settings.yaml:/app/graphrag-folder/settings.yaml
-      - /mnt/c/Users/helenzeng/graphRAG2/postgreSQL-AGE/data/prompts:/app/graphrag-folder/prompts
-      - /mnt/c/Users/helenzeng/graphRAG2/postgreSQL-AGE/build-graph.py:/app/build-graph.py
-    ports:
-      - "8083:80"
+      - /mnt/c/Users/helenzeng/New-graphRAG/postgreSQL-AGE/settings.yaml:/app/graphrag-folder/settings.yaml
+      - /mnt/c/Users/helenzeng/New-graphRAG/postgreSQL-AGE/prompts:/app/graphrag-folder/prompts
+      - /mnt/c/Users/helenzeng/New-graphRAG/postgreSQL-AGE/build-graph.py:/app/build-graph.py
     depends_on:
       - graphrag-index
       - graphrag-writer
@@ -74,14 +72,14 @@ services:
     env_file: .env
 
   query-notebook:
-    image: graphrag-img
+    image: new-graphrag-img
     container_name: query-notebook-app
     volumes:
       - local_postgres_data:/var/lib/postgresql/data
       - graphrag_data:/app/graphrag-folder
-      - /mnt/c/Users/helenzeng/graphRAG2/postgreSQL-AGE/settings.yaml:/app/graphrag-folder/settings.yaml
-      - /mnt/c/Users/helenzeng/graphRAG2/postgreSQL-AGE/data/prompts:/app/graphrag-folder/prompts
-      - /mnt/c/Users/helenzeng/graphRAG2/postgreSQL-AGE/query-notebook.ipynb:/app/query-notebook.ipynb
+      - /mnt/c/Users/helenzeng/New-graphRAG/postgreSQL-AGE/settings.yaml:/app/graphrag-folder/settings.yaml
+      - /mnt/c/Users/helenzeng/New-graphRAG/postgreSQL-AGE/prompts:/app/graphrag-folder/prompts
+      - /mnt/c/Users/helenzeng/New-graphRAG/postgreSQL-AGE/query-notebook.ipynb:/app/query-notebook.ipynb
     ports:
       - "8888:8888"
     depends_on:
@@ -90,15 +88,38 @@ services:
     command: jupyter notebook /app/query-notebook.ipynb --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.shutdown_no_activity_timeout=0
     env_file: .env
 
+
+  mcp-agent:
+    image: new-graphrag-img
+    container_name: mcp-agent-app
+    volumes:
+      - local_postgres_data:/var/lib/postgresql/data
+      - graphrag_data:/app/graphrag-folder
+      - /mnt/c/Users/helenzeng/New-graphRAG/postgreSQL-AGE/settings.yaml:/app/graphrag-folder/settings.yaml
+      - /mnt/c/Users/helenzeng/New-graphRAG/postgreSQL-AGE/mcp_server.py:/app/mcp_server.py
+      - /mnt/c/Users/helenzeng/New-graphRAG/postgreSQL-AGE/agent-notebook.ipynb:/app/agent-notebook.ipynb
+      - /mnt/c/Users/helenzeng/New-graphRAG/postgreSQL-AGE/prompts:/app/graphrag-folder/prompts
+    ports:
+      - "8011:8000"   # MCP (optional, mostly for debugging)
+      - "8084:8084"   # Jupyter
+    depends_on:
+      - postgres
+      - graphrag-writer
+      - build-graph
+    command: >
+      bash -c "
+        python3 /app/mcp_server.py &
+        jupyter notebook /app/agent-notebook.ipynb --ip=0.0.0.0 --port=8084 --no-browser --allow-root --NotebookApp.shutdown_no_activity_timeout=0
+      "
+    env_file: .env
+
   reconstruct-graph:
-    image: graphrag-img
+    image: new-graphrag-img
     container_name: reconstruct-graph-app
     volumes:
       - local_postgres_data:/var/lib/postgresql/data
       - graphrag_data:/app/graphrag-folder
-      - /mnt/c/Users/helenzeng/graphRAG2/postgreSQL-AGE/reconstruct-graph.py:/app/reconstruct-graph.py
-    ports:
-      - "8084:80"
+      - /mnt/c/Users/helenzeng/New-graphRAG/postgreSQL-AGE/reconstruct-graph.py:/app/reconstruct-graph.py
     depends_on:
       - postgres
     command: python3 /app/reconstruct-graph.py
