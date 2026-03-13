@@ -33,6 +33,7 @@ Two volumes are created to persist postgres data and app related data.
     description="Find Entity nodes by name/title substring match (best for 'Who is X?' or quick disambiguation)." <br>
 [age_nl2cypher_query]   <br>
     description="Convert a natural-language question into a Cypher query (Entity/RELATED_TO only), execute it, and return rows; best for complex or multi-hop semantic graph questions." <br>
+    
 4> Uses Microsoft agent framework. Multiple scenarions of agents with MCP tools are included in the agent-notebook.ipynb: <br>
 
 - graphRAG search: local search and global search examples with direct mcp call. <br>
