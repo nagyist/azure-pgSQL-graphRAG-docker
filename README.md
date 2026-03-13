@@ -18,11 +18,9 @@ Two volumes are created to persist postgres data and app related data.
 </p>
 
 ## What's new:
-1> New graphRAG version 3.0.5. It's an API‑driven graph construction step rather than a tightly coupled end‑to‑end pipeline. The updated configuration model and execution flow make it easier to materialize extracted entities and relationships into PostgreSQL with Apache AGE, while allowing agents to operate over a persistent graph instead of recomputing relationships at query time. <br>
+1> New graphRAG version 3.0.5. GraphRAG 3.0.5 stabilizes the 3.x configuration‑driven, API‑based architecture and improves indexing reliability, making graph construction more predictable and easier to integrate into real workflows. <br>
 
-2> Postgres:16-bookworm. Its' a fully supported long‑term release built on Debian 12, providing a modern and stable foundation for Apache AGE and graph persistence. <br>
-
-3> Added MCP tools:<br>
+2> Added MCP tools:<br>
 [graphrag_search]:<br>
     description="Run a GraphRAG query (local or global) with runtime-tunable API params". <br>
 [age_get_schema_cached]: <br>
@@ -34,7 +32,7 @@ Two volumes are created to persist postgres data and app related data.
 [age_nl2cypher_query]   <br>
     description="Convert a natural-language question into a Cypher query (Entity/RELATED_TO only), execute it, and return rows; best for complex or multi-hop semantic graph questions." <br>
     
-4> Uses Microsoft agent framework. Multiple scenarios of agents with MCP tools are included in the agent-notebook.ipynb: <br>
+3> Uses Microsoft agent framework. Multiple scenarios of agents with MCP tools are included in the agent-notebook.ipynb: <br>
 
 - graphRAG search: local search and global search examples with direct mcp call. <br>
 - graphRAG search: local search and global search examples with agent and include mcp tools. <br>
