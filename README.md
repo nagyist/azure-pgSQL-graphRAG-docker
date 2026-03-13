@@ -1,3 +1,4 @@
+Latest update: March 13, 2026
 # GraphRAG and PostgreSQL integration in docker with AGE and AI agents
 This solution accelerator is designed to integrate graphRAG and PostgreSQL in a docker, with AGE added and AI agents capabilities on top. This enables Cypher queries, besides graphRAG search, vector search. Even more, AI agents can be built on top to perform advanced tasks by utilizing the rich knowledge graph.
 
@@ -15,6 +16,28 @@ Two volumes are created to persist postgres data and app related data.
 <p align="center">
 <img src="project_folder/data/pics/graphrag-postgres.png" style="width:70%; height:auto; display: block; margin: 0 auto;  text-align:center">
 </p>
+
+## What's new:
+1> New graphRAG version 3.0.5. It's an API‑driven graph construction step rather than a tightly coupled end‑to‑end pipeline. The updated configuration model and execution flow make it easier to materialize extracted entities and relationships into PostgreSQL with Apache AGE, while allowing agents to operate over a persistent graph instead of recomputing relationships at query time. 
+2> Postgres:16-bookworm. Its' a fully supported long‑term release built on Debian 12, providing a modern and stable foundation for Apache AGE and graph persistence.
+3> Added MCP tools:
+[graphrag_search]:
+    description="Run a GraphRAG query (local or global) with runtime-tunable API params",
+[age_get_schema_cached]: 
+    description="Return cached AGE graph schema; if refresh=true, re-query the database and update the cache."
+[age_cypher_query]:
+    description="Execute a user-provided Cypher query against the AGE graph and return rows (each row under key 'result')."
+[age_entity_lookup]:
+    description="Find Entity nodes by name/title substring match (best for 'Who is X?' or quick disambiguation).“
+[age_nl2cypher_query]   
+    description="Convert a natural-language question into a Cypher query (Entity/RELATED_TO only), execute it, and return rows; best for complex or multi-hop semantic graph questions."
+4> Uses Microsoft agent framework. Multiple scenarions of agents with MCP tools are included in the agent-notebook.ipynb: <br>
+
+- graphRAG search: local search and global search examples with direct mcp call. <br>
+- graphRAG search: local search and global search examples with agent and include mcp tools. <br>
+- Cypher query in direct mcp call.<br>
+- Agent to query in natural language, and mcp tool included to convert NL2Cypher.<br>
+- Agent with unified mcp ( all five mcp tools), and based on the question route to the corresponding tool.
 
 ## How to deploy the solution
 Please refer to the HOWTO.pdf for detailed steps to deploy the solution:
