@@ -1,86 +1,78 @@
-# AI & LLMs
-openai
-tiktoken
-langchain
-langchain-community
-langchain-core
-langsmith
-semantic-kernel[azure]==1.20.0
-autogenstudio
+# =========================
+# Microsoft Agent Framework
+# =========================
+agent-framework==1.0.0rc2
+agent-framework-azure-ai==1.0.0b251001
 
-# Azure SDKs & Services
-azure-ai-documentintelligence
-azure-ai-ml
+# =========================
+# GraphRAG (pinned)
+# =========================
+graphrag==3.0.5
+
+# =========================
+# Azure AI / Foundry SDKs
+# =========================
 azure-ai-projects
-azure-ai-services
-azure-common
+azure-ai-agents
+azure-ai-documentintelligence
+azure-search-documents>=11.6.0
 azure-core
 azure-identity
-azure-mgmt-core
 
-# Data Science & Math
+# =========================
+# LLM + Tokenization
+# =========================
+openai>=1.12.0
+tiktoken
+
+# =========================
+# Data & ML
+# =========================
 numpy
 pandas
 scipy
 pyarrow
-tqdm
-networkx
 scikit-learn
+networkx
 faiss-cpu
+tqdm
 
-# Visualization & UI
-streamlit
-Pyvis
-graspologic
-
-# Natural Language Processing (NLP)
-spacy
-rdflib
-regex
-
-# PostgreSQL & Database Connectivity
+# =========================
+# Databases / Graph
+# =========================
 psycopg2-binary
 sqlalchemy
-pyodbc>=4.0.39
 pgvector
+pyodbc>=4.0.39
 
-# Filesystem, Paths, and Environment
-pathlib
-pathable
-python-dotenv
-
-# Web & API Tools
+# =========================
+# Web / API
+# =========================
 requests
 urllib3
-openapi-core
-openapi-schema-validator
-openapi-spec-validator
 uvicorn
+fastapi
+fastmcp
 
-# Async, System, and Utility
-asyncio
-async-timeout
-nest-asyncio
-psutil
-logging
-typing
-pytz
-
-# Validation, Parsing, and Packaging
-pydantic
+# =========================
+# Config / Validation
+# =========================
+pydantic>=2.7
+pydantic-settings
+python-dotenv
 packaging
-referencing
 toml
 
-# PDF & Image Handling
-pdfkit
+# =========================
+# Visualization (optional)
+# =========================
+streamlit
+pyvis
+matplotlib
+
+# =========================
+# PDF / Image
+# =========================
 pillow
-
-# Templating & Secrets
-Jinja2
-keyring
-
-# Custom or Internal Modules
-graphrag
-
-
+pdfkit
+jinja2
