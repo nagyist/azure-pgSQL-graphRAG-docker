@@ -1,88 +1,94 @@
-# Copyright (c) Microsoft Corporation.
-# Licensed under the MIT license.
-# Use PostgreSQL 16 for AGE compatibility
-FROM postgres:16
+# ------------------------------------------------------------
+# Stage 1: Build Python venv with dependencies (Python 3.12)
+# ------------------------------------------------------------
+FROM python:3.12-slim-bookworm AS pydeps
 
-# Set the working directory
-WORKDIR /app
+ENV DEBIAN_FRONTEND=noninteractive
+WORKDIR /build
 
-# Install build tools, PostgreSQL dev headers, and flex/bison
-RUN apt-get update && apt-get install -y \
-    git build-essential postgresql-server-dev-16 \
+
+# System deps to compile common Python wheels (kept minimal)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential gcc g++ \
+    git curl ca-certificates pkg-config \
+    libffi-dev libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create venv
+RUN python3.12 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy and install requirements
+COPY graphRAG/requirements.txt /build/requirements.txt
+RUN pip install --upgrade pip setuptools wheel \
+    && pip install --no-cache-dir -r /build/requirements.txt \
+    && pip install --no-cache-dir --upgrade openai \
+    && pip install --no-cache-dir "graphrag==3.0.5"
+
+# ------------------------------------------------------------
+# Stage 2: Final image based on Postgres 16 + AGE + pgvector
+# ------------------------------------------------------------
+FROM postgres:16-bookworm
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# --- Install build + runtime deps for AGE/pgvector + pyodbc ---
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl git \
+    build-essential make clang \
+    postgresql-server-dev-16 \
     libreadline-dev zlib1g-dev flex bison \
-    curl gnupg unixodbc-dev
+    unixodbc unixodbc-dev \
+    libssl3 libffi8 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install pgvector extension
-RUN git clone https://github.com/pgvector/pgvector.git /pgvector && \
-    cd /pgvector && \
-    make && \
-    make install
+# --- Optional: Microsoft ODBC Driver 18 for SQL Server (Debian 12 / bookworm) ---
+# If you don't need Azure SQL via pyodbc, you can remove this whole block.
+RUN curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /usr/share/keyrings/microsoft.gpg \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/debian/12/prod bookworm main" \
+       > /etc/apt/sources.list.d/microsoft-prod.list \
+    && apt-get update \
+    && ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set pg_config path explicitly
-ENV PG_CONFIG=/usr/lib/postgresql/16/bin/pg_config
+# --- Copy Python 3.12 runtime + venv from builder stage ---
+COPY --from=pydeps /usr/local /usr/local
+COPY --from=pydeps /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Clone and build Apache AGE from PG16-compatible branch
-RUN git clone --branch release/PG16/1.5.0 https://github.com/apache/age.git /age && \
-    cd /age && \
-    make && \
-    make install
+# --- Build & install pgvector ---
+ARG PGVECTOR_VERSION=v0.7.4
+RUN git clone --depth 1 --branch ${PGVECTOR_VERSION} https://github.com/pgvector/pgvector.git /tmp/pgvector \
+    && cd /tmp/pgvector \
+    && make \
+    && make install \
+    && rm -rf /tmp/pgvector
 
-# Copy your application files to the container
-COPY . /app
-
-# Copy the requirements file
-COPY graphRAG/requirements.txt /app/requirements.txt
-
-# Install Python 3.12 and other dependencies
-RUN apt-get update && \
-    apt-get install -y wget libffi-dev libssl-dev zlib1g-dev libncurses5-dev \
-    libncursesw5-dev libreadline-dev libsqlite3-dev libgdbm-dev libdb5.3-dev \
-    libbz2-dev libexpat1-dev liblzma-dev tk-dev && \
-    wget https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tgz && \
-    tar -xvf Python-3.12.0.tgz && \
-    cd Python-3.12.0 && \
-    ./configure --enable-optimizations && \
-    make -j 4 && \
-    make altinstall && \
-    wget https://bootstrap.pypa.io/get-pip.py && \
-    python3.12 get-pip.py
-
-# Install ODBC Driver 18 for SQL Server
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
-    curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list && \
-    apt-get update && \
-    ACCEPT_EULA=Y apt-get install -y msodbcsql18
-
-# Install PowerShell (optional, if still needed)
-RUN apt-get install -y wget && \
-    wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb && \
-    dpkg -i packages-microsoft-prod.deb && \
-    apt-get update && \
-    apt-get install -y powershell && \
-    rm -rf /var/lib/apt/lists/*
-
-# Create and activate virtual environment
-RUN python3.12 -m venv /app/venv
-ENV PATH="/app/venv/bin:$PATH"
-# Install Python dependencies
-RUN /app/venv/bin/pip install --no-cache-dir -r /app/requirements.txt
-
-# Upgrade to the latest OpenAI SDK (Azure-compatible)
-RUN /app/venv/bin/pip install --upgrade openai
+# --- Build & install Apache AGE (PG16 compatible) ---
+# You requested PG16-compatible branch/tag, keeping it explicit:
+ARG AGE_REF=release/PG16/1.5.0
+RUN git clone --depth 1 --branch ${AGE_REF} https://github.com/apache/age.git /tmp/age \
+    && cd /tmp/age \
+    && make install \
+    && rm -rf /tmp/age
 
 # Install pyodbc and Jupyter
-RUN /app/venv/bin/pip install pyodbc jupyter
+RUN pip install pyodbc jupyter requests httpx
 
-# Ensure the graphrag-folder exists
-RUN mkdir -p /app/graphrag-folder \
+# --- App workspace folders (shared by your docker-compose volumes) ---
+WORKDIR /app
+RUN mkdir -p \
     /app/graphrag-folder/input \
     /app/graphrag-folder/output \
     /app/graphrag-folder/cache \
-    /app/graphrag-folder/prompts \
     /app/graphrag-folder/logs \
-    /app/graphrag-folder/update_output \
+    /app/graphrag-folder/prompts \
+    /app/graphrag-folder/update-output \
     /app/graphrag-folder/restore \
     /app/plugins
 
-# Expose necessary ports
-EXPOSE 5432 8081 8082 8083 8888
+# Expose ports used by your services
+EXPOSE 5432 8081 8082 8083 8888 8084
+
+# Default command remains postgres; docker-compose can override per service
+CMD ["postgres"]
