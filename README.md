@@ -40,7 +40,7 @@ Two volumes are created to persist postgres data and app related data.
 - Agent to query in natural language, and mcp tool included to convert NL2Cypher.<br>
 - Agent with unified mcp ( all five mcp tools), and based on the question route to the corresponding tool.<br>
 
-**Note:** The repository also includes [age_get_schema] and [age_get_schema_detail]s MCP tools for debugging and development purposes. These are not exposed to agents by default and are superseded by age_get_schema_cached for normal use.
+**Note:** The repository also includes [age_get_schema] and [age_get_schema_details] MCP tools for debugging and development purposes. These are not exposed to agents by default and are superseded by [age_get_schema_cached] for normal use.
 
 ## How to deploy the solution
 Please refer to the HOWTO.pdf for detailed steps to deploy the solution:
