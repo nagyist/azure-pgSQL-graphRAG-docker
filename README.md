@@ -10,17 +10,17 @@ This solution is especially useful when:
 - You want to avoid another blob storage between the DB and graphRAG.
 
 ## Solution Accelerator Architecture
-The solution is to build graphRAG index directly using the data in DB. The docker image uses postgres as base, then added python, graphRAG, AGE, semantic-kernel and other needed packages. With Apache AGE, it enables Cypher queries.
+Version 1 in 2025: The solution is to build graphRAG index directly using the data in DB. The docker image uses postgres as base, then added python, graphRAG, AGE, semantic-kernel and other needed packages. With Apache AGE, it enables Cypher queries.
 Two volumes are created to persist postgres data and app related data.
 
 <p align="center">
 <img src="project_folder/data/pics/graphrag-postgres.png" style="width:70%; height:auto; display: block; margin: 0 auto;  text-align:center">
 </p>
 
-## What's new:
+## What's new in version 2, Mar 2026:
 1> New graphRAG version 3.0.5. GraphRAG 3.0.5 stabilizes the 3.x configuration‑driven, API‑based architecture and improves indexing reliability, making graph construction more predictable and easier to integrate into real workflows. <br>
 
-2> Added MCP tools:<br>
+2> **Added MCP tools**:<br>
 [graphrag_search]:<br>
     description="Run a GraphRAG query (local or global) with runtime-tunable API params". <br>
 [age_get_schema_cached]: <br>
